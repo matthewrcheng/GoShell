@@ -7,24 +7,13 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
-
-	term "github.com/nsf/termbox-go"
 )
 
 func main() {
-	// initialize keyboard
-	// err := term.Init()
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer term.Close()
-
-	// initialize history
-	// history := []string{}
-	// historyIndex := 0
-
 	// create a scanner to read input from user
 	scanner := bufio.NewScanner(os.Stdin)
+
+	// TODO: env variables
 
 	for {
 		fmt.Print("$ ")
@@ -32,7 +21,6 @@ func main() {
 
 		// grab input from the user
 		input := scanner.Text()
-		// input := readInputWithHistory(&history, &historyIndex, scanner)
 
 		// convert input into tokens
 		tokens := strings.Fields(input)
@@ -46,61 +34,6 @@ func main() {
 			break
 		}
 	}
-}
-
-func readInputWithHistory(history *[]string, historyIndex *int, scanner *bufio.Scanner) string {
-	var input strings.Builder
-
-	for {
-		fmt.Println("1")
-		ev := term.PollEvent()
-
-		if ev.Type == term.EventError {
-			panic(ev.Err)
-		}
-
-		if ev.Key == term.KeyEnter {
-			fmt.Println()
-			fmt.Println("2")
-			break
-		} else if ev.Key == term.KeyArrowUp {
-			if *historyIndex > 0 {
-				*historyIndex--
-				input.Reset()
-				input.WriteString((*history)[*historyIndex])
-				fmt.Print("\r$ " + input.String())
-			}
-		} else if ev.Key == term.KeyArrowDown {
-			if *historyIndex < len(*history)-1 {
-				*historyIndex++
-				input.Reset()
-				input.WriteString((*history)[*historyIndex])
-				fmt.Print("\r$ " + input.String())
-			} else {
-				*historyIndex = len(*history)
-				input.Reset()
-				fmt.Print("\r$ ")
-			}
-		} else if ev.Key == term.KeyBackspace || ev.Key == term.KeyBackspace2 {
-			if input.Len() > 0 {
-				curr := input.String()[:input.Len()-1]
-				input.Reset()
-				input.WriteString(curr)
-				fmt.Print("\r$ " + input.String() + " ")
-				fmt.Print("\r$ " + input.String())
-			}
-		} else {
-			input.WriteRune(ev.Ch)
-			fmt.Print(string(ev.Ch))
-		}
-	}
-	fmt.Println("3")
-	command := input.String()
-	if command != "" {
-		*history = append(*history, command)
-		*historyIndex = len(*history)
-	}
-	return command
 }
 
 func handleOperators(tokens []string) bool {
@@ -161,10 +94,6 @@ func execute(tokens []string) bool {
 	if err := cmd.Run(); err != nil {
 		fmt.Println("Error executing command", err)
 	}
-
-	// for _, token := range tokens {
-	// 	fmt.Println("Token: ", token)
-	// }
 
 	return false
 }
